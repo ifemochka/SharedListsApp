@@ -49,15 +49,11 @@ fun SharedListContent(
                 text = "Список: ${userList.name}",
                 style = MaterialTheme.typography.headlineMedium,
                 color = Purple80,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .align(Alignment.CenterHorizontally)
             )
 
-            Text(
-                text = "UID пользователя: $uid",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 24.dp)
-            )
 
             userList.items.forEachIndexed { index, item ->
                 Row(

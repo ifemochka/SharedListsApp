@@ -31,8 +31,7 @@ import com.google.firebase.auth.FirebaseAuth
 fun DrawerBody(auth: FirebaseAuth,
                onLogout: () -> Unit) {
     val options = listOf(
-        "Ваши списки",
-        "Выполненые"
+        "Ваши списки"
     )
 
     Box(modifier = Modifier.fillMaxSize()){

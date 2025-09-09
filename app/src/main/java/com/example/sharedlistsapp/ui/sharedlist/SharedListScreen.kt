@@ -22,7 +22,6 @@ fun SharedListScreen(
     listName: String,
     listId: String
 ) {
-    // Состояние для загрузки
     var isLoading by remember { mutableStateOf(true) }
     var userList by remember { mutableStateOf<UserList?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -59,7 +58,6 @@ fun SharedListScreen(
                 modifier = Modifier.weight(1f)
             )
 
-            // Кнопка добавления соавтора внизу
             Button(
                 onClick = { showAddDialog = true },
                 modifier = Modifier
