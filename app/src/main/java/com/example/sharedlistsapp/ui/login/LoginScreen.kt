@@ -35,8 +35,8 @@ fun LoginScreen(
     val auth = Firebase.auth
     val context = LocalContext.current
 
-    val emailState = remember { mutableStateOf("g@gmail.com") }
-    val passwordState = remember { mutableStateOf("123456") }
+    val emailState = remember { mutableStateOf("") }
+    val passwordState = remember { mutableStateOf("") }
     val isLoading = remember { mutableStateOf(false) }
 
     LaunchedEffect(auth.currentUser) {

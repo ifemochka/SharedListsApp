@@ -1,15 +1,27 @@
 package com.example.sharedlistsapp.ui.sharedlist
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.example.sharedlistsapp.R
 import com.example.sharedlistsapp.data.ShoppingItem
 import com.example.sharedlistsapp.data.UserList
+import com.example.sharedlistsapp.ui.theme.Purple80
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
@@ -43,6 +55,7 @@ fun SharedListScreen(
             CircularProgressIndicator()
         }
     } else if (userList != null) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -156,7 +169,6 @@ fun loadUserList(listId: String, onLoaded: (UserList) -> Unit) {
         }
         .addOnFailureListener { e ->
             println("Ошибка загрузки списка: ${e.message}")
-            // Создаем новый список в случае ошибки
             val newUserList = UserList(
                 id = listId,
                 name = "Новый список",

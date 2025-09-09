@@ -70,7 +70,6 @@ fun DrawerBody(auth: FirebaseAuth,
             ) {
                 Text(text = "Выйти из аккаунта")
             }
-
         }
     }
 }

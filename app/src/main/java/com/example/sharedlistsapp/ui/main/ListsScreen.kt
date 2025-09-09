@@ -41,9 +41,11 @@ import com.example.sharedlistsapp.R
 import com.example.sharedlistsapp.ui.theme.Purple80
 import com.example.sharedlistsapp.ui.theme.PurpleGrey80
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.tasks.await
 import java.util.Date
 
 @Composable
@@ -229,4 +231,30 @@ private fun addListToUser(userId: String, listId: String) {
     }
 }
 
+private suspend fun getUserLists(userId: String): List<Pair<String, String>> {
+    val db = Firebase.firestore
 
+    return try {
+        val userDoc = db.collection("users").document(userId).get().await()
+        val listIds = userDoc.get("sharedLists") as? List<String> ?: emptyList()
+
+        if (listIds.isEmpty()) {
+            return emptyList()
+        }
+
+        val lists = db.collection("lists")
+            .whereIn(FieldPath.documentId(), listIds)
+            .get()
+            .await()
+
+        lists.documents.map { document ->
+            Pair(
+                document.id,
+                document.getString("name") ?: "Без названия"
+            )
+        }
+
+    } catch (e: Exception) {
+        emptyList()
+    }
+}
