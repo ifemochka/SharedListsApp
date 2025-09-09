@@ -51,8 +51,8 @@ class MainActivity : ComponentActivity() {
                         onLogout = {
                             navController.popBackStack(Screen.Login.route, false)
                         },
-                        onOpenList = { listName ->
-                            val route = Screen.SharedList.createRoute(uid, listName)
+                        onOpenList = { listId, listName ->
+                            val route = Screen.SharedList.createRoute(uid, listId, listName)
                             navController.navigate(route)
                         }
                     )
@@ -62,15 +62,18 @@ class MainActivity : ComponentActivity() {
                     route = Screen.SharedList.route,
                     arguments = listOf(
                         navArgument("uid") { type = NavType.StringType },
+                        navArgument("listId") { type = NavType.StringType },
                         navArgument("listName") { type = NavType.StringType }
                     )
                 ) { backStackEntry ->
                     val uid = backStackEntry.arguments?.getString("uid") ?: ""
+                    val listId = backStackEntry.arguments?.getString("listId") ?: ""
                     val listName = backStackEntry.arguments?.getString("listName") ?: ""
 
                     SharedListScreen(
                         uid = uid,
-                        listName = listName
+                        listName = listName,
+                        listId = listId
                     )
                 }
             }

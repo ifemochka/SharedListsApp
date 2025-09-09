@@ -9,9 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,9 +25,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sharedlistsapp.R
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun DrawerBody() {
+fun DrawerBody(auth: FirebaseAuth,
+               onLogout: () -> Unit) {
     val options = listOf(
         "Ваши списки",
         "Выполненые"
@@ -37,7 +41,7 @@ fun DrawerBody() {
         )
         Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally)
         {
-            LazyColumn(Modifier.fillMaxSize()) {
+            LazyColumn(modifier = Modifier.weight(1f)) {
                 items(options){ item ->
                     Column (Modifier.fillMaxWidth().clickable(){}) {
                         Spacer(Modifier.height(12.dp))
@@ -54,6 +58,18 @@ fun DrawerBody() {
                         )
                     }
                 }
+            }
+
+            Button(
+                onClick = {
+                    auth.signOut()
+                    onLogout()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(text = "Выйти из аккаунта")
             }
 
         }

@@ -39,17 +39,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.sharedlistsapp.R
 import com.example.sharedlistsapp.ui.theme.Purple80
+import com.example.sharedlistsapp.ui.theme.PurpleGrey80
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import java.util.Date
 
 @Composable
 fun ListsScreen(
     auth: FirebaseAuth,
     onLogout: () -> Unit,
-    objects: List<String>,
-    onOpenList: (String) -> Unit
+    objects: List<Pair<String, String>>,
+    onOpenList: (String, String) -> Unit
 ) {
     var showCreateDialog by remember { mutableStateOf(false) }
     var newListName by remember { mutableStateOf("") }
@@ -89,7 +91,7 @@ fun ListsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Purple80)
+            colors = ButtonDefaults.buttonColors(containerColor = PurpleGrey80)
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
@@ -104,22 +106,14 @@ fun ListsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(vertical = 8.dp)
         ) {
-            items(objects) { item ->
+            items(objects) { (listId, listName) ->
                 ObjectCard(
-                    item = item,
-                    onClick = { onOpenList(item) }
+                    item = listName,
+                    onClick = { onOpenList(listId, listName) }
                 )
             }
         }
 
-        Button(
-            onClick = {
-                auth.signOut()
-                onLogout()
-            }
-        ) {
-            Text(text = "Выйти")
-        }
     }
 
     if (showCreateDialog) {
@@ -164,13 +158,40 @@ fun ListsScreen(
     }
 }
 
+data class UserList(
+    val id: String = "",
+    val name: String = "",
+    val ownerId: String = "",
+    val sharedWith: List<String> = emptyList(),
+    val items: List<ShoppingItem> = emptyList(),
+    val createdAt: Date = Date()
+)
+
+data class ShoppingItem(
+    val name: String = "",
+    val checked: Boolean = false
+)
+
 fun createNewList(userId: String, listName: String) {
     val db = Firebase.firestore
 
+    val newList = UserList(
+        name = listName,
+        ownerId = userId,
+        items = listOf(ShoppingItem("", false)),
+        createdAt = Date()
+    )
+
     val listData = hashMapOf(
-        "name" to listName,
-        "ownerId" to userId,
-        "sharedWith" to emptyList<String>(),
+        "name" to newList.name,
+        "ownerId" to newList.ownerId,
+        "sharedWith" to newList.sharedWith,
+        "items" to newList.items.map { item ->
+            hashMapOf(
+                "name" to item.name,
+                "checked" to item.checked
+            )
+        },
         "createdAt" to FieldValue.serverTimestamp()
     )
 
@@ -178,6 +199,12 @@ fun createNewList(userId: String, listName: String) {
         .add(listData)
         .addOnSuccessListener { listRef ->
             addListToUser(userId, listRef.id)
+
+            db.collection("lists").document(listRef.id)
+                .update("id", listRef.id)
+                .addOnFailureListener { e ->
+                    println("Ошибка при обновлении ID списка: ${e.message}")
+                }
         }
         .addOnFailureListener { e ->
             println("Ошибка при создании списка: ${e.message}")
@@ -191,10 +218,15 @@ private fun addListToUser(userId: String, listId: String) {
     db.runTransaction { transaction ->
         val user = transaction.get(userRef)
         val currentLists = user.get("sharedLists") as? List<String> ?: emptyList()
-        transaction.update(userRef, "sharedLists", currentLists + listId)
+
+        if (!currentLists.contains(listId)) {
+            transaction.update(userRef, "sharedLists", currentLists + listId)
+        }
     }.addOnSuccessListener {
         println("Список успешно добавлен пользователю")
     }.addOnFailureListener { e ->
         println("Ошибка при добавлении списка пользователю: ${e.message}")
     }
 }
+
+

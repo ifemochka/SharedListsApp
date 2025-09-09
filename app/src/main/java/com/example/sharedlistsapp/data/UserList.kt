@@ -7,6 +7,6 @@ data class UserList(
     val name: String = "",
     val ownerId: String = "",
     val sharedWith: List<String> = emptyList(),
-    val items: List<String> = emptyList(),
+    val items: List<ShoppingItem> = emptyList(),
     val createdAt: Date = Date()
 )

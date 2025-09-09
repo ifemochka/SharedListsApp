@@ -10,7 +10,6 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -30,19 +29,17 @@ fun MainScreen(
     uid: String,
     email: String,
     onLogout: () -> Unit,
-    onOpenList: (String) -> Unit
+    onOpenList: (String, String) -> Unit
 ) {
-    val listsState = remember { mutableStateOf(emptyList<String>()) }
+    val listsState = remember { mutableStateOf(emptyList<Pair<String, String>>()) }
     val loadingState = remember { mutableStateOf(true) }
     val auth = Firebase.auth
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    // Используем DisposableEffect для управления подпиской
     DisposableEffect(uid) {
         val db = Firebase.firestore
         val userRef = db.collection("users").document(uid)
 
-        // Snapshot listener для реального времени
         val registration = userRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 println("Ошибка snapshot listener: ${error.message}")
@@ -58,7 +55,6 @@ fun MainScreen(
                     return@addSnapshotListener
                 }
 
-                // Загружаем названия списков
                 CoroutineScope(Dispatchers.IO).launch {
                     try {
                         val lists = db.collection("lists")
@@ -66,12 +62,15 @@ fun MainScreen(
                             .get()
                             .await()
 
-                        val listNames = lists.documents.map { document ->
-                            document.getString("name") ?: "Без названия"
+                        val listPairs = lists.documents.map { document ->
+                            Pair(
+                                document.id,
+                                document.getString("name") ?: "Без названия"
+                            )
                         }
 
                         withContext(Dispatchers.Main) {
-                            listsState.value = listNames
+                            listsState.value = listPairs
                             loadingState.value = false
                         }
                     } catch (e: Exception) {
@@ -95,7 +94,8 @@ fun MainScreen(
             Box(modifier = Modifier.fillMaxWidth(0.7f)) {
                 Column(Modifier.fillMaxSize()) {
                     DrawerHeader(email)
-                    DrawerBody()
+                    DrawerBody(auth = auth,
+                        onLogout = onLogout)
                 }
             }
         }
@@ -112,30 +112,5 @@ fun MainScreen(
                 )
             }
         }
-    }
-}
-
-private suspend fun getUserLists(userId: String): List<String> {
-    val db = Firebase.firestore
-
-    return try {
-        val userDoc = db.collection("users").document(userId).get().await()
-        val listIds = userDoc.get("sharedLists") as? List<String> ?: emptyList()
-
-        if (listIds.isEmpty()) {
-            return emptyList()
-        }
-
-        val lists = db.collection("lists")
-            .whereIn(FieldPath.documentId(), listIds)
-            .get()
-            .await()
-
-        lists.documents.map { document ->
-            document.getString("name") ?: "Без названия"
-        }
-
-    } catch (e: Exception) {
-        emptyList()
     }
 }
